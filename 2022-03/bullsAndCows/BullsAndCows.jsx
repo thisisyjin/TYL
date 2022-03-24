@@ -30,13 +30,13 @@ const BullsAndCows = () => {
     } else {
       let strike = 0;
       let ball = 0;
-      const valueArr = value.split(""); // [1,3,5,7]
+      const valueArr = value.split("").map(v => parseInt(v)); // [1,3,5,7]
       console.log(answer, valueArr);
 
       for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
-          if (valueArr[i] == answer[j]) {
-            if (i == j) {
+          if (valueArr[i] === answer[j]) {
+            if (i === j) {
               strike++;
             } else {
               ball++;
@@ -45,12 +45,14 @@ const BullsAndCows = () => {
         }
       }
       setResult(`${strike}스트라이크 ${ball}볼`);
+      setTries([
+        ...tries,
+        { try: value, result: `${strike}스트라이크 ${ball}볼` },
+      ]);
+      console.log(tries);
+      setValue("");
+      inputRef.current.focus();
     }
-
-    setTries([...tries, result]);
-
-    setValue("");
-    inputRef.current.focus();
   };
 
   const onChangeInput = e => {
@@ -60,11 +62,13 @@ const BullsAndCows = () => {
   return (
     <>
       <div>
+        <h1>🎲숫자야구🏏</h1>
         <form onSubmit={onSubmitForm}>
           <input
             type="number"
             maxLength={4}
             value={value}
+            placeholder="숫자를 맞혀보세요"
             onChange={onChangeInput}
             ref={inputRef}
           />
@@ -72,12 +76,14 @@ const BullsAndCows = () => {
         </form>
       </div>
       <div>{result}</div>
-      {/* <ul>
-        LOG:{" "}
+      <ul>
+        🔎 로그
         {tries.map(el => (
-          <li>{el}</li>
+          <li key={el.try}>
+            {el.try} : {el.result}
+          </li>
         ))}
-      </ul> */}
+      </ul>
     </>
   );
 };
