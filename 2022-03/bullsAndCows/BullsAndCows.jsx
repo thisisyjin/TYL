@@ -23,35 +23,42 @@ const BullsAndCows = () => {
   const onSubmitForm = e => {
     e.preventDefault();
 
-    if (value == answer.join("")) {
-      setResult("홈런! 정답입니다.");
-      setTries([...tries, { try: value, result: "홈런!" }]);
+    if (tries.length >= 9) {
+      setResult(`게임오버! 정답은 ${answer.join("")} 였습니다.`);
       setValue("");
+      setTries([]);
+      setAnswer(getNumbers());
     } else {
-      let strike = 0;
-      let ball = 0;
-      const valueArr = value.split("").map(v => parseInt(v)); // [1,3,5,7]
-      console.log(answer, valueArr);
+      if (value == answer.join("")) {
+        setResult("홈런! 정답입니다.");
+        setTries([...tries, { try: value, result: "홈런!" }]);
+        setValue("");
+      } else {
+        let strike = 0;
+        let ball = 0;
+        const valueArr = value.split("").map(v => parseInt(v)); // [1,3,5,7]
+        console.log(answer, valueArr);
 
-      for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 4; j++) {
-          if (valueArr[i] === answer[j]) {
-            if (i === j) {
-              strike++;
-            } else {
-              ball++;
+        for (let i = 0; i < 4; i++) {
+          for (let j = 0; j < 4; j++) {
+            if (valueArr[i] === answer[j]) {
+              if (i === j) {
+                strike++;
+              } else {
+                ball++;
+              }
             }
           }
         }
+        setResult(`${strike}스트라이크 ${ball}볼`);
+        setTries([
+          ...tries,
+          { try: value, result: `${strike}스트라이크 ${ball}볼` },
+        ]);
+        console.log(tries);
+        setValue("");
+        inputRef.current.focus();
       }
-      setResult(`${strike}스트라이크 ${ball}볼`);
-      setTries([
-        ...tries,
-        { try: value, result: `${strike}스트라이크 ${ball}볼` },
-      ]);
-      console.log(tries);
-      setValue("");
-      inputRef.current.focus();
     }
   };
 
@@ -63,8 +70,10 @@ const BullsAndCows = () => {
     <>
       <div>
         <h1>🎲숫자야구🏏</h1>
+        <p>남은 횟수: {10 - tries.length}회</p>
         <form onSubmit={onSubmitForm}>
           <input
+            required
             type="number"
             maxLength={4}
             value={value}
