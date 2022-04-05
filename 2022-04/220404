@@ -1,0 +1,262 @@
+# React.js
+
+**Today I Learned ... **`react.js`
+
+>🙋‍♂️ [**React.js Reference Book**](https://www.youtube.com/watch?v=Zb70S1I6u6U&list=PLcqDmjxt30RtqbStQqk-eYMK8N-1SYIFn&index=20)
+
+>🙋‍ [**My Dev Blog**](https://mywebproject.tistory.com/)
+
+
+
+***   
+
+
+# React 복습
+
+### < 예제 > Input 컴포넌트
+
+- Input 컴포넌트 만들면서 복습하기
+
+
+
+```jsx
+
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
+
+class Input extends PureComponent {
+  constructor(props) {
+    super(props);
+    this.setRef = this.setRef.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(e) {
+    const { name, onChange } = this.props;
+    if (onChange) {
+      onChange(name, e.target.value);
+    }
+  }
+
+  componentDidMount() {
+    if (this.props.autoFocus) {  // autoFocus가 True면, 자동 포커스되게
+      this.ref.focus();
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.props.autoFocus) {
+      this.ref.focus();
+    }
+  }
+
+  setRef(ref) {
+    this.ref = ref;
+  }
+
+  render() {
+    const { errorMsg, label, name, value, type, onFocus } = this.props;
+    return (
+      <label>
+        {label}
+        <input
+          type={type}
+          id={`input_${name}`}
+          ref={this.setRef}
+          onChange={this.handleChange}
+          onFocus={onFocus}
+          value={value}
+        />
+        {errorMsg && <span className="error">{errorMsg}</span>}
+      </label>
+    );
+  }
+}
+
+Input.propTypes = {
+  type: PropTypes.oneOf(['text', 'number', 'price']),
+  name: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  errorMsg: PropTypes.string,
+  label: PropTypes.string,
+  onChange: PropTypes.func,
+  onFocus: PropTypes.func,
+  autoFocus: PropTypes.bool,
+};
+Input.defaultProps = {
+  onChange: () => {},
+  onFocus: () => {},
+  autoFocus: false,
+  type: 'text',
+};
+
+export default Input;
+
+```
+
+### 1. 클래스형 컴포넌트이며, PureComponent 형태로 작성함.
+- `PureComponent`는 왜 사용하는지?
+
+
+### PureComponent
+
+- PureComponent는 Component를 상속받은 클래스로, Hooks(함수형)으론 못하고 클래스 컴포넌트에서만 사용 가능.
+- PureComponent는 **shouldComponentUpdate()함수**를 **얕은 비교**를 하도록 함.
+
+
+- 즉, 얕은 비교를 통해 데이터가 비교된 경우에만 `true`를 반환해 render()을 호출함.
+- 아래는 React 클래스 컴포넌트의 생명주기를 간단히 설명한 그림임. 
+-> shouldComponentUpdate가 `true`를 반환해야 다음 render로 넘어가게 됨. (갱신)
+
+![](https://media.vlpt.us/images/thisisyjin/post/bea6e098-75aa-4ab5-abf9-8391b6d6cc4e/image.png)
+
+|Component	|PureComponent|
+|:--:|:--:|
+|항상 render()함수 호출|	얕은 비교를 통해 데이터가 변경된 경우에만 render() 호출|
+
+
+### 2. ref 설정 - focus() 되도록
+- 클래스 컴포넌트에서 ref를 사용할 때에는
+- 컴포넌트의 어트리뷰트로 ref = {this.setRef}를 줘서 setRef함수를 호출한다.
+- 여기서, 인수로 자기자신(=DOM element)가 들어가게 된다.
+
+
+- setRef(ref) { this.ref = ref } 가 실행되어 this.ref에 인수로 들어간 
+input 요소가 저장된다.
+- componentDidMount와 componentDidUpdate에서, 
+autoFocus가 true면 this.ref에 focus()로 포커싱하도록 함.
+
+
+> **- componentDidMount()**  
+> render() 함수가 JSX를 화면에 렌더링 한 이후에 호출되는 함수.
+> **- componentDidUpdate()**
+> 컴포넌트가 화면에 실제로 출력된 이후 호출되는 함수 
+
+> **🙋‍♀️ componentDidMount() vs. componentDidUpdate()**
+> 1) the DOM is available (initial render) - componentDidMount 
+> 2) properties got changed - componentDidUpdate
+
+
+### 3. constructor 안에서 함수를 바인딩 한 이유
+
+```jsx
+constructor(props) {
+    super(props);
+    this.setRef = this.setRef.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+  }
+```
+
+클래스의 constructor 함수 내에선 인스턴스 객체를 생성 및 초기화함.
+
+
+### this 바인딩
+- 일반 함수에서 `this`는 전역객체(window)를 의미하고,
+메서드에서의 `this`는 자신을 호출한 객체(즉, . 앞에 객체)를 의미한다.
+- 생성자함수(new와 함께 호출)에서의 `this`는 자신이 생성할 인스턴스를 의미한다.
+단, new 없이 일반함수로 호출되면 전역객체를 가리킨다.
+- 화살표함수(=>)에서는 자체의 this 바인딩이 존재하지 않고, 상위스코프의 this를 따른다.
+
+
+
+
+
+그렇다면, 왜 클래스 컴포넌트에서 메서드에 this를 바인딩 해줘야 할까?
+
+```jsx
+class Input extends PureComponent {
+  constructor() {
+     this.handleChange = this.handleChange.bind(this);  // this 바인딩
+  }
+
+  handleChange(e) {
+    // 내용
+  }
+}
+
+```
+
+- handleChange를 **이 클래스 내부**에서 사용하는 것은 아무 문제가 없다.
+```jsx
+render() {
+  return (
+  	<input onChange={this.handleChange} />  
+  );
+}
+```
+
+- 클래스 내부에서 this.handleChange는 **메소드로서 작동**하기 때문에 
+this가 알아서 binding이 될 것이다.
+
+- 하지만 다른 컴포넌트나 (window의)Event Handler가 함수를 사용한다면?
+-> this를 바인딩하지 않았으므로 값이 전달되지 않는다.
+
+
+- this 바인딩을 생략하려면 arrow function을 이용할 수 있다.
+(알아서 상위스코프의 this로 바인딩된다.)
+
+
+> 예시 - this.state 쓰지 않고, constructor 쓰지 않고. 
+> 메서드를 화살표 함수로 선언시 - this 바인딩 필요 X
+```jsx
+class App extends React.Component {
+  state = {
+    count: 10,
+  };
+  resetCount = () => {
+    this.setState(({ count }) => ({
+      count: count + 10,
+    }));
+  };
+```
+
+
+### 4. 단축평가 (&&)
+
+```jsx
+{errorMsg && <span className="error">{errorMsg}</span>}
+```
+
+- 좌항(errorMsg)가 false이면 false이고,
+true이면 우항(`<span>`)을 반환함.
+
+#### 💬   > 단축평가란?
+|AND (&&)|OR (\|\|)|
+|:--:|:--:|
+|if문 대체|기본값 설정|
+
+**1. AND (&&)**
+_true && anything -> anything
+false && anything -> false_ 이므로 
+좌항이 true면 우항을 반환하고, 좌항이 false면 false 반환.
+
+**2. OR (||)**
+_true || anything -> true
+false || anything -> anything _이므로
+좌항이 false일때는 우항을 반환. (기본값으로 쓰임)
+
+
+
+
+### 5. PropTypes의 oneOf, oneOfType
+
+```jsx
+Input.propTypes = {
+type: PropTypes.oneOf(['text', 'number', 'price']),
+value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+}
+```
+
+- oneOf - 값이 배열의 요소 중 하나여야 함.
+- oneOfType - type이 배열의 요소 중 하나여야 함.
+
+
+
+### 6. defaultTypes 
+
+- 프로퍼티 기본값 설정.
+- defaultProps는 prop의 값이 부모 컴포넌트에 의해 명시되지 않았을 때 값을 갖도록 해줌.
+(즉, 기본값 설정)
+
+
+- propTypes(타입 검사)는 defaultProps에도 적용되게 하기 위하여 defaultProps가 처리된 뒤에 하는것이 좋음.
