@@ -1,0 +1,331 @@
+# React.js
+
+**Today I Learned ... **`react.js`
+
+>🙋‍♂️ [**React.js Reference Book**](https://www.youtube.com/watch?v=Zb70S1I6u6U&list=PLcqDmjxt30RtqbStQqk-eYMK8N-1SYIFn&index=20)
+
+>🙋‍ [**My Dev Blog**](https://mywebproject.tistory.com/)
+
+
+
+***   
+
+## 에어비앤비 디자인 시스템 따라하기
+
+### 스토리북(storybook)
+
+- **비주얼 테스트**: 컴포넌트들을 독립적으로 관리하고 변화를 살펴볼 수 있음.
+- **스토리(story)**란 ?
+-> 컴포넌트의 다양한 출력 형태를 구성한 페이지
+
+
+- [스토리북 공식 가이드](https://storybook.js.org/tutorials/intro-to-storybook/react/ko/get-started/)
+- [스토리북 입문 가이드](https://hyunseob.github.io/2018/01/08/storybook-beginners-guide)
+
+**1. storybook 설치**
+
+```bash
+> yarn add -dev @storybook/react
+```
+
+
+**2. 스토리북 실행 명령어 - package.json 수정**
+
+``` json
+"scripts" : {
+  "storybook" : "start-storybook -p 9001 -c .storybook",
+}
+```
+
+
+**3. 스토리 파일 생성**
+- /src/stories/InputStory
+``` jsx
+import React from "react";
+import { storiesOf } from "@storybook/react"; 
+
+import Input from "../component/Input";
+
+storiesOf("Input", module).add("기본 설정", () => <Input />);
+
+```
+> storiesOf 함수
+- 스토리를 스토리북 도구에 추가해줌
+
+- storiesOf()의 첫번째 인수 = 스토리북 도구에 표시할 **스토리 이름**
+- 두번째 인수 = module
+
+
+- add()의 첫번째 인수 = 스토리북 도구에 표시할 **메뉴 이름**
+- 두번째 인수 = 콜백 (Input 컴포넌트 반환)
+
+
+**4. `.storybook` 폴더 (root) 생성 후 연결**
+- /.storybook/config.js
+
+``` js
+import { configure } from "@storybook/react";
+
+function loadStories() {
+    require('../src/stories/InputStory');
+}
+
+configure(loadStories, module);
+
+```
+
+
+**5. npm run storybook **
+
+```bash
+> npm run storybook
+```
+
+![](https://media.vlpt.us/images/thisisyjin/post/c9229690-c98e-4f33-8cf4-a767f3e6396c/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202022-04-04%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%2012.47.26.png)
+
+- Input 태그가 포함된 스토리북 도구가 나타남. (브라우저에서 열림)
+- 주소는 [http://localhost:9001/?path=/story/input--기본-설정](.) 
+
+
+
+***
+
+
+### 스토리북 활용법
+
+- 스토리에 여러 형태의 컴포넌트를 추가하고, 새 스토리를 자동으로 스토리북에 연결.
+
+
+- ./src/stories/InputStory.jsx
+```jsx
+import React from 'react';
+import { storiesOf } from '@storybook/react';
+
+import Input from '../component/Input';
+
+storiesOf('Input', module)
+   .add('기본 설정', () => <Input name="name" />)
+   .add('label 예제', () => <Input name="name" label="이름" />);
+
+```
+![](https://media.vlpt.us/images/thisisyjin/post/d0bbf24b-ca0a-4ed4-9f0b-77f8a48b295b/Apr-04-2022%2013-02-21.gif)
+
+
+- 이처럼 스토리에 여러 형태의 Input 컴포넌트를 추가해서 비주얼 테스트를 할 수 있다.
+- 컴포넌트에 다양한 기능이나 디자인 추가시 스토리북을  사용하면 된다!
+
+
+### 스토리 추가하기
+
+**- 카운터 스토리 추가 **
+( 지난 예제에서 제작했던 NewCounter.jsx를 이용 )
+
+- ./src/component/Newcounter.jsx **(복습)**
+
+```jsx
+import React from 'react';
+
+class NewCounter extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+    this.increaseCount = this.increaseCount.bind(this);
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    const { count } = props;
+    return {
+      count,
+      newCount: count === state.count ? state.newCount : count,
+    };
+  }
+
+  increaseCount() {
+    this.setState(({ newCount }) => ({
+      newCount: newCount + 1,
+    }));
+  }
+  render() {
+    return (
+      <div>
+        현재 카운트 : {this.state.newCount}
+        <button onClick={this.increaseCount}>카운트 증가</button>
+      </div>
+    );
+  }
+}
+
+export default NewCounter;
+
+```
+
+-> getDerivedStateFromProps()를 이용하여, 외부에서 값이 변경될 시 그것도 반영한다.
+❕ 자세한 내용은 [dev blog](https://mywebproject.tistory.com/422#here)의 이전 글을 참고.
+
+<br>
+
+
+- ./src/stories/NewCounterStory.jsx
+```jsx
+import React from "react";
+import { storiesOf } from "@storybook/react";
+
+import NewCounter from "../component/NewCounter";
+
+storiesOf("NewCounter", module).add("기본 설정", () => (
+  <NewCounter count={0} />
+));
+```
+
+- 스토리북에 스토리 추가하기
+/.storybook/config.js
+
+``` js
+import { configure } from "@storybook/react";
+
+function loadStories() {
+    require('../src/stories/InputStory');
+    require('../src/stories/NewCounterStory'); // 👈 require로 추가
+}
+
+configure(loadStories, module);
+```
+
+저장하는 순간, 자동으로 웹팩이 빌드되면서 스토리북 도구가 리로드된다.
+
+
+![](https://media.vlpt.us/images/thisisyjin/post/cdf8733e-0493-4637-b11c-4e4a323167bc/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202022-04-04%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%201.31.01.png)
+
+
+### 스토리가 자동으로 스토리북에 추가되도록 설정
+- 매번 story가 추가될 때 마다 config.js를 수정하는 것은 비효율적임.
+
+
+
+- /.storybook/config.js
+```js
+import { configure } from "@storybook/react";
+import interopRequireDefault from 'babel-runtime/helpers/interopRequireDefault';
+
+
+function loadStories() {
+    const context = require.context('../src/stories', true, /Story\.jsx$/);   // 정규표현식 - Story.jsx로 끝나는 파일
+    context.keys().forEach((srcFile) => {
+        interopRequireDefault(context(srcFile));
+    });
+}
+
+configure(loadStories, module);
+```
+
+- require.context()함수로 src/stories 폴더의 스토리 목록을 가져옴. (정규표현식으로 찾기)
+- context()함수는 require()과 동일한 기능을 하며, 가변 경로를 사용할때 쓸 수 있음.
+
+> **📌 require.context**
+> require.context는 **기준 디렉토리로부터 정규표현식에 해당하는 모든 모듈을 불러올 수 있는** 웹팩 컴파일러의 특별한 기능이다. 
+>require.context를 사용하면 컴파일타임에 매칭되는 모든 모듈을 웹팩 **빌드 디펜던시에 추가**하게 되고 덕분에 매칭되는 모든 모듈을 런타임에 불러올 수 있다.
+
+
+
+
+- interopRequireDefault(context(srcFile))은 context() 함수로 임포트한 파일 중 default 항목을 임포트함.
+
++) 참고 - `> npm install -D babel-runtime`로 설치 후 진행함.
+
+
+
+
+
+### 스토리북 확장 (addons)
+
+- 이벤트 작동 테스트 - `addon-actions`
+- 컴포넌트 사용 (jsx)코드 출력 - `addon-jsx`
+
+
+1. `addon-actions` 패키지 설치
+``` bash
+> npm install -D @storybook/addons @storybook/addon-actions
+```
+
+2. addon-actions 설정 추가
+- /.storybook/addons.js
+``` js
+import '@storybook/addon-actions/register';
+```
+
+3. InputStory에 addon-actions 적용
+- /src/stories/InputStory.jsx
+```jsx
+import React from "react";
+import { storiesOf } from "@storybook/react";
+import { action } from "@storybook/addon-actions";
+
+import Input from "../component/Input";
+
+storiesOf("Input", module)
+  .add("기본 설정", () => <Input name="name" />)
+  .add("label 예제", () => <Input name="name" label="이름" />)
+  .add("onChange 예제", () => (
+    <Input name="name" onChange={action("onChange 이벤트 발생")} />   // 👈 action() 사용
+  ));
+
+```
+
+
+- onChange 이벤트가 발생할 때 마다 스토리북 도구 하단에 Actions 창에 뜨게 된다.
+- action() 의 인수로는 좌측에 나올 이벤트 설명을 입력하면 된다.
+
+![](https://media.vlpt.us/images/thisisyjin/post/eb73e1d4-e92a-479e-b8de-81192be02b7b/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202022-04-04%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%203.18.17.png)
+
+
+4. `addon-jsx` 설치 + 설정 추가(register_
+```bash
+> npm i -D storybook-addon-jsx
+```
+
+- /.storybook/addons.js
+
+``` js
+import '@storybook/addon-actions/register';
+import 'storybook-addon-jsx/register';
+```
+
+5. config.js 수정
+- addon-jsx는 새로운 예제 추가 함수를 storyOf함수에 추가하므로, config.js를 수정해야 함.
+
+- /.storybook/config.js
+``` js
+import { configure, setAddon } from "@storybook/react";
+import interopRequireDefault from 'babel-runtime/helpers/interopRequireDefault';
+import JSXAddon from 'storybook-addon-jsx';  // 👈 추가된 부분 1
+
+function loadStories() {
+    const context = require.context('../src/stories', true, /Story\.jsx$/);
+    context.keys().forEach((srcFile) => {
+        interopRequireDefault(context(srcFile));
+    });
+}
+
+setAddon(JSXAddon);    // 👈 추가된 부분 2
+configure(loadStories, module);
+```
+
+
+6. Story 파일 수정
+- add() 함수가 아닌 addWithJSX() 함수를 사용해서 스토리에 컴포넌트 추가.
+
+
+
+***
+
++)
+
+🔨 에러 발생함
+![](https://media.vlpt.us/images/thisisyjin/post/82a75b53-912d-4c45-ac91-ebe807a5ffba/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA%202022-04-04%20%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE%203.51.16.png)
+
+
+>'jsx'라는 것을 못찾는다는 뜻 같은데, 구글링 해봐도 다 고쳐봐도 계속 해결이 안된다.
+> 내가 storybook 설치할때 뭔가 버전 충돌이 일어난건지 root에 존재한다는 식으로 에러가 떠서
+> npm i -f (강제 설치)로 설치하긴 했는데 이때문인지는 잘 모르겠다 ...
+
+Error Breaking 에서 추후에 다루도록 하겠다. 🤦‍♀️
