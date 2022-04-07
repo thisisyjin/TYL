@@ -1,0 +1,222 @@
+# React.js
+
+**Today I Learned ... **`react.js`
+
+>🙋‍♂️ [**React.js Lecture**](https://www.youtube.com/watch?v=KDJNjLZrqJk&list=PLcqDmjxt30RtqbStQqk-eYMK8N-1SYIFn&index=18)
+
+>🙋‍ [**My Dev Blog**](https://mywebproject.tistory.com/)
+
+
+
+***   
+
+### React.createRef()
+
+- 클래스형 컴포넌트에서 focus를 위한 `ref`를 설정해줄 때, 우리는 콜백에 전달해주는 식으로 해줬다.
+
+예>
+
+``` jsx
+//  JSX
+return(
+  <input ref={this.onInputRef} />
+  )
+```
+
+
+``` jsx
+class Test extends Component {
+  ... 
+  onFormSubmit = (e) => {
+    // 내용
+    this.inputRef.focus()
+  }
+  
+  inputRef;
+  
+  onInputRef = (el) => {this.inputRef = el};
+}
+```
+- inputRef라는 빈 변수를 선언하고, (초기값 null 줘도 OK)
+- JSX의 어트리뷰트 ref에 `onInputRef`를 전달해서 인수로 받은 el을 this.inputRef에 할당한다.
+- 포커스를 주고싶은 곳에 (여기선 onFormSubmit)
+this.inputRef.focus()를 해준다.
+
+
+
++) 참고 - Hook에서는 `useRef`를 이용한다.
+
+``` jsx
+// inputRef 선언
+let inputRef = useRef(null);
+
+// JSX
+return (
+  <input ref={inputRef} />
+  );
+
+// 사용시 - current 붙여줘야함.
+inputRef.current.focus();
+```
+
+<br>
+
+- 클래스에서도 hooks에서 비슷하게 ref를 사용할 수 있다!
+-> `React.createRef()` 이용
+
+
+``` jsx
+// inputRef 선언 (클래스 몸체 내)
+inputRef = createRef();
+
+
+// JSX
+return (
+  <input ref={this.inputRef} />
+  );
+
+// 사용시 - ❗️ current 붙여줘야함 
+this.inputRef.current.focus()
+
+```
+
+> 💬 참고 
+>
+> 함수를 리턴하는 함수 (함수 안에 함수를 넣음) = 커링
+> setState()도 함수형으로 작성하면, '함수'이다보니 
+> 그 안에 다른 동작을 추가로 넣을수도 있다.
+> 이를 `하이어오더 컴포넌트` 라고 한다.
+
+
+***
+
+
+## 그 외 주의할점
+
+### render(){} 안에서 this.setState() 사용은 ❌
+
+-> 원래 this.setState()가 실행되면 render()가 실행된다. 
+-> render()안에 setState()가 또 실행되고 다시 render()
+-> 무한 반복. 
+
+<br>
+
+
+### 부모로부터 받은 props는 직접 변경할 수 ❌ 
+
+예> Try.jsx
+
+``` jsx
+import React, { memo } from "react";
+
+const Try = memo(({ tryInfo, index }) => {
+  tryInfo.try = 'hello';  // ❌ 변경 불가 
+  
+  return (
+    <li key={`${index}차 시도:`}>
+      {tryInfo.try} : {tryInfo.result}
+    </li>
+  );
+});
+
+export default Try;
+```
+
+- `props`는 부모가 바꿔야함. 자식이 직접 바꿔선 X
+- 하지만, 드물게 props를 직접 바꿔줘야 하는 경우가 있는데, 이럴때는 props를 `state`로 넣어준다.
+
+
+<center>🔻</center>
+
+
+###  부모로 받은 props를 바로 state로 넣기
+
+ 
+``` jsx
+import React, { memo, useState } from "react";
+
+const Try = memo(({ tryInfo, index }) => {
+  const [result, setResult] = useState(tryInfo.result);
+  
+  const onClick = () => {
+    setResult('hello');
+  }
+  
+  return (
+    <li key={`${index}차 시도:`}>
+      {tryInfo.try} : <span onClick={onClick}> {result} </span>
+    </li>
+  );
+});
+
+export default Try;
+```
+
+
+- props는 위와 같이 직접 바꾸지 말고,
+state로 등록 후에 setState함수로 바꾼다.
+- 참고로, onClick시 바뀌도록 이벤트 프로퍼티를 달아줬다.
+-> 그래야 **부모에게 영향을 끼치지 X.**
+
+
+
++) 클래스 컴포넌트에서도 마찬가지로.
+``` jsx
+class Try extends PureComponent {
+  state = {
+    result: this.props.tryInfo.result,
+  };
+
+  render() {
+    const {tryInfo} = this.props;
+    return (
+      <li>
+        {tryInfo.try} : <span>{this.state.result}</span>
+      </li>
+    )
+}
+```
+
+++) constructor이 쓰이는 클래스 컴포넌트는
+``` jsx
+class Try extends PureComponent {
+  constructor(props) {
+    super(props);
+    // 다른 동작 추가 가능
+    const filtered = this.props.filter(() => {})
+    
+    this.state = {
+    result: filtered, // 여기 넣어줄수 있음
+  };
+}
+
+  render() {
+    const {tryInfo} = this.props;
+    return (
+      <li>
+        {tryInfo.try} : <span>{this.state.result}</span>
+      </li>
+    )
+}
+```
+
+- constructor은 안써도 되지만, '함수' 이다보니 내부에 다른 동작(코드)를 추가할 수 있다.
+-> 정교한 동작을 할 때 사용.
+(setState()의 함수형과 ref(콜백전달시)도 마찬가지임.)
+
+***
+
+- 미리 알아보는 **context API**
+
+컴포넌트 A에서 F까지 A의 props를 전달하려 할때,
+A->B->C->D->E->F 로 구성되어있다면
+B~E까지 props가 쓸데없이 전달된다.
+-> props가 전달되면? 렌더링이 될 위험성 O.
+
+-> A에서 F로 바로 props를 전달 할 수 있는 방법인
+`context`를 이용하자.
+
+> 참고 : `context`를 이용한 것이 `Redux`이다!
+
+
+
