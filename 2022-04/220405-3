@@ -1,0 +1,399 @@
+# React.js
+
+**Today I Learned ... **`react.js`
+
+>🙋‍♂️ [**React.js Lecture**](https://www.youtube.com/watch?v=KDJNjLZrqJk&list=PLcqDmjxt30RtqbStQqk-eYMK8N-1SYIFn&index=18)
+
+>🙋‍ [**My Dev Blog**](https://mywebproject.tistory.com/)
+
+
+
+***   
+
+[지난시간 Review](https://velog.io/@thisisyjin/TIL-22-03-18-1)
+
+#### 지난시간 [추가] - **함수형 setState**
+- 이전 state를 setState에서 사용하려면
+함수형으로 작성해야한다고 배웠었다.
+
+```jsx
+// 일반 setState
+setTries([...tries, { try: value, result: "홈런! 정답입니다." }]);
+
+// 함수형 setState - ⭐ 이전 state 사용시
+setTries(prevState => [
+        ...prevState.tries,
+        { try: value, result: "홈런! 정답입니다." },
+      ]);
+```
+
+🔻 참고 - class형 Component
+```jsx
+this.setState( {
+  tries: [
+    ...prevState.tries,
+        { try: value, result: "홈런! 정답입니다."}]
+	});
+```
+***
+
+
+### React Devtools
+
+- `props` 때문에 렌더링이 자주 일어나고,
+성능 최적화에 좋지 않다.
+
+
+
+> 크롬 확장프로그램인 `React devtool`로 보면 
+Hooks로 쓴 컴포넌트는 `state`의 이름이 나오지 않는다.
+![](https://images.velog.io/images/thisisyjin/post/3f9e466e-1ab3-439c-ac76-11bc5f16c121/image.png)
+
+
+
+- react devtools를 이용하면 렌더가 다시 될때 알려준다!
+
+> 🙋‍♂️ **언제 render가 다시 되는지?**
+- `state`나 `props`가 바뀌었을 때.
+
+devtool에서 ⚙ 버튼을 클릭하여
+아래 부분에 체크를 해보자.
+
+✅Highlight updates when components render
+
+![setting](https://images.velog.io/images/thisisyjin/post/13208320-e3e6-4992-a6fc-633d732e476f/image.png)
+
+
+> 🚀 **결과**
+
+Component가 **리렌더링 될 때 마다**하이라이트 된다.
+![example](https://images.velog.io/images/thisisyjin/post/b0b115d4-7fe8-4d2c-beae-1e83ef3b87e2/dal.gif)
+
+- input value만 바뀐건데
+`<Try />`도 리렌더링 되고있음.
+
+- 렌더링이 빠르게 될수록 빨간색에 가까워짐.
+
+
+
+### React의 Rendering 원리
+
+
+```jsx
+
+import React, { Component } from "react";
+
+class TestRendering extends Component {
+  state = {
+    counter: 0,
+  };
+
+  onClickBtn = () => {
+    this.setState({});
+  };
+  render() {
+    console.log("렌더링" + this.state.counter);
+    return (
+      <div>
+        <button onClick={this.onClickBtn}>클릭</button>
+      </div>
+    );
+  }
+}
+
+export default TestRendering;
+
+```
+
+- dev-tool로 확인해본 결과, highlight가 된다. 즉, 리렌더링이 된다!
+
+- React는 똑똑하지 않아서 (...)
+즉, state나 props가 바뀌지 않아도 `setState()`만 호출해도 전체가 rendering이 된다.
+
+<br>
+
+🙋‍♂️ **shouldComponentUpdate()**를 사용하자!
+
+- `shouldComponentUpdate`는 Life-cycle Method 중 하나로, Class Component에서만 사용 가능하다.
+
+> 📌 **shouldComponentUpdate(nextProps, nextState)**
+>
+>**props를 변경**하거나 **setState()를 호출**하여 state를 변경하면, 다시 렌더링해야하는지 판단하는 함수.
+>
+>즉, 리렌더링 할지 말지 판단. 화면 변경을 위한 검증 작업. 데이터 변화를 비교하는 작업 포함됨. 
+(성능에 영향 多)
+>
+> `얕은 비교`(shallow-compare)를 통해 데이터가 변경된 경우에만 `render()`을 호출함.
+
+
+
+```jsx
+shouldComponentUpdate(nextProps, nextState) {
+      if (this.state.counter !== nextState.counter) {
+          return true;     // 값이 다름 - 변경된 것 -> 리렌더링 해라!
+      } 
+      return false;   // 값이 같음 - 변경 안됨 -> 리렌더링 하지마라
+  }
+```
+ 
+ <br>
+
+
+|shouldComponentUpdate()사용시 | 미사용시 |
+|:----------------------------:|:-------:|
+|![use](https://images.velog.io/images/thisisyjin/post/1e04754b-564a-424e-8fb4-fedda9a905e4/al.gif) | ![not](https://images.velog.io/images/thisisyjin/post/8ebf9d46-e120-4e7c-a60c-5b20390ecd13/ld.gif)|
+| 렌더링되지 않는다! | 계속 렌더링 된다. |
+
+
+<br>
+
+이것이 바로 **성능 최적화** 하는것이다.
+바뀌는 것이 없다면 렌더링 되지 않도록.
+- devTool로 보면서 하면 편리하다.
+
+
+<br>
+
+***
+
+### PureComponent의 사용
+
+위에서 배운대로 일일히 state나 props가 바뀌면 true를 return하게 설정해줄 수 있지만,
+`PureComponent`를 사용하면 편리하다.
+
+
+>🙋‍♂️ PureComponent란?
+
+- class _(컴포넌트명)_ extends `React.PureComponent` 로 작성.
+- `React.Component`를 상속받은 클래스.
+- shouldComponentUpdate()를 포함한 컴포넌트라고 할 수 있음.
+- shouldComponentUpdate()를 **얕은비교**를 하도록 재정의함.
+<br>
+
+🔻 이전 예시 - **PureComponent로 변경**
+
+```jsx
+import React, { Component, PureComponent } from "react";
+
+class TestRendering extends PureComponent {
+  state = {
+    counter: 0,
+  };
+  onClickBtn = () => {
+    this.setState({});
+  };
+  render() {
+    console.log("렌더링" + this.state.counter);
+    return (
+      <div>
+        <button onClick={this.onClickBtn}>클릭</button>
+      </div>
+    );
+  }
+}
+
+export default TestRendering;
+
+```
+- shouldComponentUpdate 없이도 알아서 리렌더링 걸러줌. 
+(값이 안바뀌므로 리렌더링 ❌)
+
+
+>왜 PureComponent는 `얕은 비교`를 하는걸까?
+- 값이 바뀌었는지 비교해야할 대상(props, state)이 만약 객체(Object)라면 값을 비교하기 어려워짐.
+- 즉, `깊은 비교`를 하면 
+```js
+const list1 = [1,2,3];
+const list2 = [1,2,3];
+```
+위 코드에서 `list1 === list2` 는 false이다.
+- reference가 다르기 때문. 두 객체는 다른 객체임.
+-> 이러면 값은 그대로인데도 (변화 X) 두 값은 일치하지 않으므로 렌더링이 발생함.
+>
+>반면에, `얕은 비교`에선 `list1 === list2` 가 true가 된다.
+> 두 값은 같기 때문에.
+              
+
+
+
+🙋‍♂️ **예제 변경**   
+
+```jsx
+import React, { Component, PureComponent } from "react";
+
+class TestRendering extends PureComponent {
+  state = {
+    array: [],
+  };
+
+  onClickBtn = () => {
+    this.setState({
+      array: [],
+    });
+  };
+  render() {
+    return (
+      <div>
+        <button onClick={this.onClickBtn}>클릭</button>
+      </div>
+    );
+  }
+}
+
+export default TestRendering;
+```
+
+array는 []에서 []로 바뀌었지만, 아예 새로운 객체로 선언되었기 때문에 리렌더링이 발생한다.
+(원래 state인 []와 새롭게 변경한 값인 []는 ref, 즉 주소가 다르므로)
+
+
+
+```jsx
+import React, { Component, PureComponent } from "react";
+
+class TestRendering extends PureComponent {
+  state = {
+    array: [],
+  };
+
+  onClickBtn = () => {
+    const array = this.state.array;
+    array.push(1);   // 원본이 변경됨 
+    this.setState({
+      array: array,  // 결국 변경되지 않아서, 리렌더링 X 
+    });
+  };
+
+  // 생략
+
+```
+위 예제에서는 `state`인 array를 array의 원본에 push(1)을 하고난 후
+setState()로 '변경된 array'로 바꾼다면?
+-> PureComponent는 리렌더링을 하지 않음. (변경x)
+
+- 따라서 새로운 객체타입(배열, 객체 등)을 만들고 싶다면, push와 같이 원본을 변경하는 것은 자제하고, **`spread(...)`를 이용**해줘야 한다!
+
+
+```jsx
+import React, { Component, PureComponent } from "react";
+
+class TestRendering extends PureComponent {
+  state = {
+    array: [],
+  };
+
+  onClickBtn = () => {
+    this.setState({
+      array: [...this.state.array, 1], // 새로운 배열이 생성됨 -> state가 변경 -> 리렌더링 O
+    });
+  };
+
+  // 생략
+
+```
+
+
+> 참고 - 객체 안에 객체의 내부가 변경되어도 알아차리지 못할수도 있다. (원본이 같이 변경되는 경우는 변경 인지X)
+> 따라서, 객체인 경우에는 새로운 객체를 만들어줘야함 (spread 이용)
+>
+> 추가로, state = { {a: 1} } 에서 setState( { {a:1} }) 를 할때, 둘은 같지만
+리렌더링 된다. 
+> ❌ state에 왠만해서는 (복잡한) 객체 구조를 쓰지 말자!
+
+
+***
+
+### 예제 - 리렌더링 막기
+
+#### 방법 1. PureComponent로 바꾸기
+
+- 컴포넌트를 잘게 쪼갤수록 PureComponent로 변경하기 쉽다.
+- 단, class 컴포넌트로만 가능 
+
+
+
++) 지난시간 - 하위 컴포넌트로 분리 (<Try />)
+
+``` jsx
+// BullsAndCows.jsx의 tries.map 부분
+<ul>
+        🔎 로그
+        {tries.map((v, index) => (
+          <Try key={`${index}차시도`} tryInfo={v} />  // v를 props로 넘겨줌
+        ))}
+</ul>
+```
+
+- Class Component - PureComponent
+-> this.props에서 직접 가져옴.
+
+```jsx
+import React, { PureComponent } from "react";
+
+class Try extends PureComponent {
+  render() {
+    const { tryInfo, index } = this.props;
+    return (
+      <li key={`${index}차시도`}>
+        {tryInfo.try} : {tryInfo.result}
+      </li>
+    );
+  }
+}
+
+export default Try;
+
+```
+
+#### 방법 2. Hook에서는?
+
+- `memo` 사용
+
+- Hooks 사용시
+-> 함수이므로, 인수로 props를 받고, 디스트럭처링 할당. 
+
+```jsx
+// Try.jsx
+import React, { memo } from "react"; // 👈 memo 임포트
+
+const Try = memo(({ tryInfo, index }) => {  // 👈 memo() 붙여주기
+  return (
+    <li key={`${index}차 시도:`}>
+      {tryInfo.try} : {tryInfo.result}
+    </li>
+  );
+});
+
+export default Try;
+```
+
+
+
+
++) 부모 컴포넌트, 즉 BullsAndCows에도 memo를 해줄 수 있다.
+
+``` jsx
+import React from "react";
+import { useState, useRef, memo } from "react";  // 👈 memo 임포트
+import Try from "./Try";
+
+
+const BullsAndCows = memo(() => { // 컴포넌트 전체에 memo() 씌워줌
+  
+  // 생략 
+ 
+});
+
+export default BullsAndCows;
+```
+
+***
+
+> ✅ 결론
+> 불필요한 리렌더링을 막아 반드시 **성능 최적화**를 해야한다!
+>
+> Class 컴포넌트일땐 - **`PureComponent`** 사용
+> Hooks 일땐 - **`memo()`** 사용 (=React.memo)
+
+***
+
