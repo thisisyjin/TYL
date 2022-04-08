@@ -9,6 +9,12 @@
 ## week 1
 
 - storybook
-- test (jest, enzyme)
+- test (`jest`, `enzyme`)
 - SASS(SCSS)
-- styled-component
+
+
+- Higher-order Component (+currying)
+- `recompose` (branch, withState, lifecycle)
+
+
+- Context
