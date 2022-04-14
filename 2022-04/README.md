@@ -17,4 +17,14 @@
 - `recompose` (branch, withState, lifecycle)
 
 
-- Context
+<br>
+
+## week 2
+
+- `Hooks` ⚛️
+
+- useState, useEffect, useMemo, useCallback
+
+- lifecycle method (componentdidMount, willUnmout, didUpdate, ...)
+
+
