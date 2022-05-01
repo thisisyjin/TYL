@@ -1,8 +1,7 @@
 # TYL :: Today Yjin Learned 📝
 
 
-<img src="https://user-images.githubusercontent.com/89119982/158769458-df94cec2-8d38-4959-ac81-c7820b13a883.jpg" width="100%"/>
-
+![Frame 1](https://user-images.githubusercontent.com/89119982/166136967-f9b4d29c-93a5-4995-85f3-38e3cd7d91e2.png)
 
 
 
