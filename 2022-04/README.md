@@ -28,3 +28,29 @@
 - lifecycle method (componentdidMount, willUnmout, didUpdate, ...)
 
 
+<br>
+
+## week 3
+
+- `Hooks` ⚛️
+
+- useReducer, dispatch, action
+
+- React.memo, useMemo (최적화)
+
+<br>
+
+## week 4
+
+- useReducer, context API
+
+- React-router
+
+- react-virtualized / immer 
+
+- `styled-component`, `SCSS`
+
+- axios (API)
+
++) `Promise`, `async/await`
+
