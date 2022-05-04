@@ -1,3 +1,5 @@
+// 프레젠테이셔널 컴포넌트
+
 const TodoItem = ({ todo, onToggle, onRemove }) => {
     return (
         <div>
