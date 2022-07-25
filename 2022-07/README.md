@@ -15,15 +15,20 @@
 <br/>
 
 ## week 2
+- sick 🤒 🏥
 
 
 
 <br/>
 
 ## week 3
+- sick 🤒 🏥
 
 
 <br/>
 
 ## week 4
+- typescript
+- front-course review
+- algorithm
 
