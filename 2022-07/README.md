@@ -32,3 +32,6 @@
 - front-course review
 - algorithm
 
+
+> 아파서 한달동안 병원만 다녔던 7월 🥲
+
